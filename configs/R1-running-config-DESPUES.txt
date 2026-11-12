@@ -1,0 +1,115 @@
+
+!
+! Last configuration change at 03:06:57 UTC Thu Nov 12 2026
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+logging buffered 16384 informational
+enable secret 5 $1$QBQ0$UdYwlK4phw6cZu/B2vymA.
+!
+no aaa new-model
+no ip source-route
+no ip icmp rate-limit unreachable
+!
+!
+!
+ip dhcp excluded-address 10.20.35.1 10.20.35.99
+!
+ip dhcp pool LAN-2025-0035
+ network 10.20.35.0 255.255.255.0
+ default-router 10.20.35.1 
+ dns-server 8.8.8.8 
+!
+!
+!
+no ip bootp server
+no ip domain lookup
+ip domain name lab20250035.local
+ip cef
+login block-for 60 attempts 5 within 60
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+username admin privilege 15 secret 5 $1$vuoL$3J2geHm3/eW6hPbj7o1me0
+!
+!
+!
+!
+!
+ip tcp synwait-time 5
+ip ssh time-out 60
+ip ssh version 2
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ ip address 10.20.35.1 255.255.255.0
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ duplex full
+!
+interface FastEthernet1/0
+ no ip address
+ shutdown
+ duplex full
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+!
+no cdp run
+!
+snmp-server community Zabbix2025 RO
+snmp-server location Lab-ITLA-2025-0035
+snmp-server contact gregorys.morel
+!
+!
+control-plane
+!
+banner login ^C ACCESO RESTRINGIDO - Solo personal autorizado. Toda actividad es monitoreada. ^C
+!
+line con 0
+ exec-timeout 5 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 5 0
+ privilege level 15
+ logging synchronous
+ no exec
+ stopbits 1
+line vty 0 4
+ exec-timeout 5 0
+ login local
+ transport input ssh
+!
+!
+end
