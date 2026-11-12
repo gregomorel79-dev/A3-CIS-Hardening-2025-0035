@@ -99,7 +99,13 @@ Salidas: `configs/<EQUIPO>-running-config-ANTES.txt` y `-DESPUES.txt`, e informe
 | SW1 | 3/21 (14 %) | 21/21 (100 %) |
 | SW2 | 3/21 (14 %) | 21/21 (100 %) |
 
-![Informe antes y después](img/02-informe-antes-despues.png)
+Salida del script en modo `--mode report` (antes → después de cada equipo):
+
+![Resultado antes y después](img/02-informe-antes-despues.png)
+
+Auditoría inicial de R1 (modo `--mode audit`, sin aplicar nada): 3 de 20 controles cumplidos.
+
+![Auditoría inicial R1](img/06-auditoria-inicial-r1.png)
 
 Los informes completos están en [`reports/`](reports/) y los `running-config` en [`configs/`](configs/).
 
