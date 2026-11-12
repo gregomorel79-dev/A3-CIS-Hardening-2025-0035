@@ -11,6 +11,8 @@ Modos:
   --mode audit   Solo crea el informe (NO aplica ninguna regla).
   --mode apply   Audita, aplica las reglas que fallan, vuelve a auditar y crea
                  el informe posterior (antes / despues).
+  --mode report  Regenera el informe antes/despues a partir de los running-config
+                 guardados (<EQUIPO>-running-config-ANTES/DESPUES.txt). No toca los equipos.
   --offline-dir  Audita archivos de running-config guardados (sin conectarse).
 
 Ejemplos:
@@ -294,7 +296,8 @@ def c09(c, t):
        "Tiempo de negociacion y reintentos SSH limitados",
        "Reduce el margen para ataques de fuerza bruta por SSH.")
 def c10(c, t):
-    ok = c.has(r"^ip ssh time-out ([1-9]|[1-5]\d|60)$") and c.has(r"^ip ssh authentication-retries [1-3]$")
+    # authentication-retries 3 es el valor por defecto y IOS no lo muestra en el running-config
+    ok = c.has(r"^ip ssh time-out ([1-9]|[1-5]\d|60)$") and not c.has(r"^ip ssh authentication-retries ([4-9]|\d\d+)$")
     return ok, "time-out y reintentos limitados" if ok else "faltan time-out/reintentos", \
         ["ip ssh time-out 60", "ip ssh authentication-retries 3"]
 
@@ -384,7 +387,7 @@ def c19(c, t):
 def c20(c, t):
     if t != "switch":
         return None, "N/A (solo switches)", []
-    ok = c.has(r"^spanning-tree portfast bpduguard default$")
+    ok = c.has(r"^spanning-tree portfast (edge )?bpduguard default$")
     return ok, "bpduguard default activo" if ok else "no configurado", ["spanning-tree portfast bpduguard default"]
 
 
@@ -510,7 +513,7 @@ def html_report(mode, results, stamp):
 # ----------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser(description="Auditoria / hardening CIS Cisco IOS")
-    ap.add_argument("--mode", choices=["audit", "apply"], default="audit")
+    ap.add_argument("--mode", choices=["audit", "apply", "report"], default="audit")
     ap.add_argument("--devices", default="R1,SW1,SW2")
     ap.add_argument("--host", default=DEFAULT_HOST)
     ap.add_argument("--ports", default="", help="R1=5000,SW1=5001,SW2=5003")
@@ -565,6 +568,28 @@ def main():
                 log("  DESPUES: %d/%d controles (%.0f%%)" % (p, n, pc))
         finally:
             con.close()
+
+    if a.mode == "report":
+        for dev in devs:
+            dtype = DEVTYPE.get(dev, "router")
+            fa = os.path.join(a.configs_dir, "%s-running-config-ANTES.txt" % dev)
+            fb = os.path.join(a.configs_dir, "%s-running-config-DESPUES.txt" % dev)
+            if not (os.path.exists(fa) and os.path.exists(fb)):
+                log("  sin ANTES/DESPUES guardados para " + dev); continue
+            d = {"applied": [], "errors": []}
+            d["before"] = evaluate(Cfg(open(fa, encoding="utf-8", errors="replace").read()), dtype)
+            d["after"] = evaluate(Cfg(open(fb, encoding="utf-8", errors="replace").read()), dtype)
+            for tag in ("before", "after"):
+                p_, n_, pc_ = score(d[tag])
+                log("  %s %s: %d/%d (%.0f%%)" % (dev, tag.upper(), p_, n_, pc_))
+            results[dev] = d
+        if not results:
+            sys.exit("Sin resultados.")
+        base = os.path.join(a.reports_dir, "informe_antes_despues_%s" % fstamp)
+        open(base + ".txt", "w", encoding="utf-8").write(txt_report("apply", results, stamp))
+        open(base + ".html", "w", encoding="utf-8").write(html_report("apply", results, stamp))
+        log("\nInforme: %s.html  /  %s.txt" % (base, base))
+        return
 
     failed = []
     for dev in devs:
