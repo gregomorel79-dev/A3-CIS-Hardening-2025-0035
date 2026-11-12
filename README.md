@@ -1,6 +1,6 @@
 # A3 · Hardening CIS de Router y Switches Cisco (con script de auditoría y aplicación)
 
-> ▶️ **Video de la demostración:** _(pendiente: pegar aquí el enlace de YouTube)_
+> ▶️ **Video de la demostración:** https://youtu.be/vAURe5kAKiw
 
 **Estudiante:** Gregorys Morel Duluc · **Matrícula:** 2025-0035 · **Materia:** Seguridad de Redes · **ITLA**
 
