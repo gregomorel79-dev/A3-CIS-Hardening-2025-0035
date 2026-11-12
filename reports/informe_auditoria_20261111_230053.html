@@ -1,0 +1,79 @@
+<html><head><meta charset='utf-8'><title>Informe CIS</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:24px;color:#222}h1{color:#1a2b4a}table{border-collapse:collapse;width:100%;margin:8px 0 24px}th,td{border:1px solid #ccc;padding:6px 8px;font-size:13px;text-align:left}th{background:#1a2b4a;color:#fff}.PASS{background:#e3f6e8;color:#157a35;font-weight:600}.FAIL{background:#fde4e1;color:#b32a1c;font-weight:600}.NA{background:#eee;color:#666}.score{font-size:18px;font-weight:700}</style></head><body>
+<h1>Informe CIS Hardening &mdash; Solo auditor&iacute;a (sin aplicar reglas)</h1>
+<p>Estudiante: Gregorys Morel Duluc &middot; Matr&iacute;cula 2025-0035 &middot; Generado: 2026-11-11 23:00:53</p>
+<h2>R1 <small>(router)</small></h2>
+<p>Antes: <span class='score'>3/20 (15%)</span></p>
+<table><tr><th>ID</th><th>Recomendaci&oacute;n CIS</th><th>Por qu&eacute;</th><th>Antes</th><th>Detalle</th></tr>
+<tr><td>H01</td><td>Enable &#x27;service password-encryption&#x27;</td><td>Evita que alguien que vea la configuracion (hombro, respaldo, TFTP) lea contrasenas.</td><td class='FAIL'>FAIL</td><td>no configurado</td></tr>
+<tr><td>H02</td><td>Set &#x27;enable secret&#x27;</td><td>&#x27;enable secret&#x27; guarda un hash, &#x27;enable password&#x27; es reversible.</td><td class='FAIL'>FAIL</td><td>falta enable secret o hay enable password</td></tr>
+<tr><td>H03</td><td>Set &#x27;username secret&#x27; for all local users</td><td>El usuario local de respaldo debe almacenarse con hash.</td><td class='FAIL'>FAIL</td><td>sin usuario con secret</td></tr>
+<tr><td>H04</td><td>Set &#x27;transport input ssh&#x27; for &#x27;line vty&#x27; connections</td><td>Telnet envia usuario y contrasena en texto claro; SSH cifra la sesion.</td><td class='FAIL'>FAIL</td><td>falla en: line vty 0 4</td></tr>
+<tr><td>H05</td><td>Set &#x27;login local&#x27; (authentication) for &#x27;line vty&#x27;</td><td>Sin autenticacion de usuario cualquiera que llegue a la vty entra.</td><td class='FAIL'>FAIL</td><td>falla en: line vty 0 4</td></tr>
+<tr><td>H06</td><td>Set &#x27;exec-timeout&#x27; to &lt;= 10 minutes (con 0 / aux 0 / vty)</td><td>Una sesion abierta y olvidada es una puerta abierta a la configuracion.</td><td class='FAIL'>FAIL</td><td>sin timeout valido en: line con 0; line aux 0; line vty 0 4</td></tr>
+<tr><td>H07</td><td>Set &#x27;no exec&#x27; for &#x27;line aux 0&#x27;</td><td>El puerto AUX es un acceso fisico/modem que casi nadie vigila.</td><td class='FAIL'>FAIL</td><td>aux con exec activo</td></tr>
+<tr><td>H08</td><td>Set &#x27;ip domain-name&#x27;</td><td>SSH necesita hostname y dominio para crear la clave RSA del equipo.</td><td class='FAIL'>FAIL</td><td>sin dominio</td></tr>
+<tr><td>H09</td><td>Set version 2 for &#x27;ip ssh version&#x27;</td><td>SSHv1 tiene fallas criptograficas conocidas.</td><td class='FAIL'>FAIL</td><td>SSH v2 no configurado</td></tr>
+<tr><td>H10</td><td>Set &#x27;ip ssh time-out&#x27; &lt;= 60 and &#x27;ip ssh authentication-retries&#x27; &lt;= 3</td><td>Reduce el margen para ataques de fuerza bruta por SSH.</td><td class='FAIL'>FAIL</td><td>faltan time-out/reintentos</td></tr>
+<tr><td>H11</td><td>Set the &#x27;banner-text&#x27; for &#x27;banner login&#x27;</td><td>Da base legal para actuar contra accesos no autorizados.</td><td class='FAIL'>FAIL</td><td>sin banner</td></tr>
+<tr><td>H12</td><td>Set &#x27;no ip http server&#x27; / &#x27;no ip http secure-server&#x27;</td><td>Reduce la superficie de ataque: la administracion se hace por SSH.</td><td class='PASS'>PASS</td><td>HTTP/HTTPS deshabilitado</td></tr>
+<tr><td>H13</td><td>Set &#x27;no ip source-route&#x27;</td><td>Permite a un atacante dictar la ruta de sus paquetes y saltarse controles.</td><td class='FAIL'>FAIL</td><td>habilitado (por defecto)</td></tr>
+<tr><td>H14</td><td>Set &#x27;no ip bootp server&#x27;</td><td>Servicio obsoleto que no se usa; menos servicios, menos riesgo.</td><td class='FAIL'>FAIL</td><td>no deshabilitado</td></tr>
+<tr><td>H15</td><td>Set &#x27;no cdp run&#x27;</td><td>CDP revela modelo, IOS e IPs del equipo a cualquier vecino.</td><td class='FAIL'>FAIL</td><td>CDP activo</td></tr>
+<tr><td>H16</td><td>Set &#x27;service timestamps log datetime&#x27;</td><td>Sin hora exacta no se pueden correlacionar eventos en una investigacion.</td><td class='PASS'>PASS</td><td>timestamps en logs</td></tr>
+<tr><td>H17</td><td>Set &#x27;logging buffered&#x27; (severity level)</td><td>Conserva evidencia local de lo ocurrido en el equipo.</td><td class='FAIL'>FAIL</td><td>sin logging buffered</td></tr>
+<tr><td>H18</td><td>Enable login protection (&#x27;login block-for&#x27;)</td><td>Frena ataques de adivinacion de contrasenas contra las vty.</td><td class='FAIL'>FAIL</td><td>sin login block-for</td></tr>
+<tr><td>H19</td><td>Set &#x27;no ip proxy-arp&#x27;, &#x27;no ip redirects&#x27;, &#x27;no ip unreachables&#x27; on L3 interfaces</td><td>Evitan fuga de informacion y abuso (proxy ARP, redirects, ICMP unreachable).</td><td class='FAIL'>FAIL</td><td>faltan en: FastEthernet0/0</td></tr>
+<tr><td>H20</td><td>Enable &#x27;spanning-tree portfast bpduguard default&#x27;</td><td>Un switch pirata conectado a un puerto de acceso no puede alterar el STP.</td><td class='NA'>N/A</td><td>N/A (solo switches)</td></tr>
+<tr><td>H21</td><td>Do not use default SNMP community strings (public/private)</td><td>&#x27;public&#x27; y &#x27;private&#x27; son lo primero que prueba un atacante.</td><td class='PASS'>PASS</td><td>sin comunidades por defecto</td></tr>
+</table>
+<h2>SW1 <small>(switch)</small></h2>
+<p>Antes: <span class='score'>7/20 (35%)</span></p>
+<table><tr><th>ID</th><th>Recomendaci&oacute;n CIS</th><th>Por qu&eacute;</th><th>Antes</th><th>Detalle</th></tr>
+<tr><td>H01</td><td>Enable &#x27;service password-encryption&#x27;</td><td>Evita que alguien que vea la configuracion (hombro, respaldo, TFTP) lea contrasenas.</td><td class='FAIL'>FAIL</td><td>no configurado</td></tr>
+<tr><td>H02</td><td>Set &#x27;enable secret&#x27;</td><td>&#x27;enable secret&#x27; guarda un hash, &#x27;enable password&#x27; es reversible.</td><td class='FAIL'>FAIL</td><td>falta enable secret o hay enable password</td></tr>
+<tr><td>H03</td><td>Set &#x27;username secret&#x27; for all local users</td><td>El usuario local de respaldo debe almacenarse con hash.</td><td class='FAIL'>FAIL</td><td>sin usuario con secret</td></tr>
+<tr><td>H04</td><td>Set &#x27;transport input ssh&#x27; for &#x27;line vty&#x27; connections</td><td>Telnet envia usuario y contrasena en texto claro; SSH cifra la sesion.</td><td class='PASS'>PASS</td><td>todas las vty solo SSH</td></tr>
+<tr><td>H05</td><td>Set &#x27;login local&#x27; (authentication) for &#x27;line vty&#x27;</td><td>Sin autenticacion de usuario cualquiera que llegue a la vty entra.</td><td class='PASS'>PASS</td><td>todas las vty con login local</td></tr>
+<tr><td>H06</td><td>Set &#x27;exec-timeout&#x27; to &lt;= 10 minutes (con 0 / aux 0 / vty)</td><td>Una sesion abierta y olvidada es una puerta abierta a la configuracion.</td><td class='PASS'>PASS</td><td>todas las lineas &lt;= 10 min</td></tr>
+<tr><td>H07</td><td>Set &#x27;no exec&#x27; for &#x27;line aux 0&#x27;</td><td>El puerto AUX es un acceso fisico/modem que casi nadie vigila.</td><td class='NA'>N/A</td><td>N/A (el equipo no tiene aux)</td></tr>
+<tr><td>H08</td><td>Set &#x27;ip domain-name&#x27;</td><td>SSH necesita hostname y dominio para crear la clave RSA del equipo.</td><td class='FAIL'>FAIL</td><td>sin dominio</td></tr>
+<tr><td>H09</td><td>Set version 2 for &#x27;ip ssh version&#x27;</td><td>SSHv1 tiene fallas criptograficas conocidas.</td><td class='FAIL'>FAIL</td><td>SSH v2 no configurado</td></tr>
+<tr><td>H10</td><td>Set &#x27;ip ssh time-out&#x27; &lt;= 60 and &#x27;ip ssh authentication-retries&#x27; &lt;= 3</td><td>Reduce el margen para ataques de fuerza bruta por SSH.</td><td class='FAIL'>FAIL</td><td>faltan time-out/reintentos</td></tr>
+<tr><td>H11</td><td>Set the &#x27;banner-text&#x27; for &#x27;banner login&#x27;</td><td>Da base legal para actuar contra accesos no autorizados.</td><td class='FAIL'>FAIL</td><td>sin banner</td></tr>
+<tr><td>H12</td><td>Set &#x27;no ip http server&#x27; / &#x27;no ip http secure-server&#x27;</td><td>Reduce la superficie de ataque: la administracion se hace por SSH.</td><td class='PASS'>PASS</td><td>HTTP/HTTPS deshabilitado</td></tr>
+<tr><td>H13</td><td>Set &#x27;no ip source-route&#x27;</td><td>Permite a un atacante dictar la ruta de sus paquetes y saltarse controles.</td><td class='FAIL'>FAIL</td><td>habilitado (por defecto)</td></tr>
+<tr><td>H14</td><td>Set &#x27;no ip bootp server&#x27;</td><td>Servicio obsoleto que no se usa; menos servicios, menos riesgo.</td><td class='FAIL'>FAIL</td><td>no deshabilitado</td></tr>
+<tr><td>H15</td><td>Set &#x27;no cdp run&#x27;</td><td>CDP revela modelo, IOS e IPs del equipo a cualquier vecino.</td><td class='FAIL'>FAIL</td><td>CDP activo</td></tr>
+<tr><td>H16</td><td>Set &#x27;service timestamps log datetime&#x27;</td><td>Sin hora exacta no se pueden correlacionar eventos en una investigacion.</td><td class='PASS'>PASS</td><td>timestamps en logs</td></tr>
+<tr><td>H17</td><td>Set &#x27;logging buffered&#x27; (severity level)</td><td>Conserva evidencia local de lo ocurrido en el equipo.</td><td class='FAIL'>FAIL</td><td>sin logging buffered</td></tr>
+<tr><td>H18</td><td>Enable login protection (&#x27;login block-for&#x27;)</td><td>Frena ataques de adivinacion de contrasenas contra las vty.</td><td class='FAIL'>FAIL</td><td>sin login block-for</td></tr>
+<tr><td>H19</td><td>Set &#x27;no ip proxy-arp&#x27;, &#x27;no ip redirects&#x27;, &#x27;no ip unreachables&#x27; on L3 interfaces</td><td>Evitan fuga de informacion y abuso (proxy ARP, redirects, ICMP unreachable).</td><td class='PASS'>PASS</td><td>interfaces L3 endurecidas</td></tr>
+<tr><td>H20</td><td>Enable &#x27;spanning-tree portfast bpduguard default&#x27;</td><td>Un switch pirata conectado a un puerto de acceso no puede alterar el STP.</td><td class='FAIL'>FAIL</td><td>no configurado</td></tr>
+<tr><td>H21</td><td>Do not use default SNMP community strings (public/private)</td><td>&#x27;public&#x27; y &#x27;private&#x27; son lo primero que prueba un atacante.</td><td class='PASS'>PASS</td><td>sin comunidades por defecto</td></tr>
+</table>
+<h2>SW2 <small>(switch)</small></h2>
+<p>Antes: <span class='score'>3/21 (14%)</span></p>
+<table><tr><th>ID</th><th>Recomendaci&oacute;n CIS</th><th>Por qu&eacute;</th><th>Antes</th><th>Detalle</th></tr>
+<tr><td>H01</td><td>Enable &#x27;service password-encryption&#x27;</td><td>Evita que alguien que vea la configuracion (hombro, respaldo, TFTP) lea contrasenas.</td><td class='FAIL'>FAIL</td><td>no configurado</td></tr>
+<tr><td>H02</td><td>Set &#x27;enable secret&#x27;</td><td>&#x27;enable secret&#x27; guarda un hash, &#x27;enable password&#x27; es reversible.</td><td class='FAIL'>FAIL</td><td>falta enable secret o hay enable password</td></tr>
+<tr><td>H03</td><td>Set &#x27;username secret&#x27; for all local users</td><td>El usuario local de respaldo debe almacenarse con hash.</td><td class='FAIL'>FAIL</td><td>sin usuario con secret</td></tr>
+<tr><td>H04</td><td>Set &#x27;transport input ssh&#x27; for &#x27;line vty&#x27; connections</td><td>Telnet envia usuario y contrasena en texto claro; SSH cifra la sesion.</td><td class='FAIL'>FAIL</td><td>falla en: line vty 0 4</td></tr>
+<tr><td>H05</td><td>Set &#x27;login local&#x27; (authentication) for &#x27;line vty&#x27;</td><td>Sin autenticacion de usuario cualquiera que llegue a la vty entra.</td><td class='FAIL'>FAIL</td><td>falla en: line vty 0 4</td></tr>
+<tr><td>H06</td><td>Set &#x27;exec-timeout&#x27; to &lt;= 10 minutes (con 0 / aux 0 / vty)</td><td>Una sesion abierta y olvidada es una puerta abierta a la configuracion.</td><td class='FAIL'>FAIL</td><td>sin timeout valido en: line con 0; line aux 0; line vty 0 4</td></tr>
+<tr><td>H07</td><td>Set &#x27;no exec&#x27; for &#x27;line aux 0&#x27;</td><td>El puerto AUX es un acceso fisico/modem que casi nadie vigila.</td><td class='FAIL'>FAIL</td><td>aux con exec activo</td></tr>
+<tr><td>H08</td><td>Set &#x27;ip domain-name&#x27;</td><td>SSH necesita hostname y dominio para crear la clave RSA del equipo.</td><td class='FAIL'>FAIL</td><td>sin dominio</td></tr>
+<tr><td>H09</td><td>Set version 2 for &#x27;ip ssh version&#x27;</td><td>SSHv1 tiene fallas criptograficas conocidas.</td><td class='FAIL'>FAIL</td><td>SSH v2 no configurado</td></tr>
+<tr><td>H10</td><td>Set &#x27;ip ssh time-out&#x27; &lt;= 60 and &#x27;ip ssh authentication-retries&#x27; &lt;= 3</td><td>Reduce el margen para ataques de fuerza bruta por SSH.</td><td class='FAIL'>FAIL</td><td>faltan time-out/reintentos</td></tr>
+<tr><td>H11</td><td>Set the &#x27;banner-text&#x27; for &#x27;banner login&#x27;</td><td>Da base legal para actuar contra accesos no autorizados.</td><td class='PASS'>PASS</td><td>banner presente</td></tr>
+<tr><td>H12</td><td>Set &#x27;no ip http server&#x27; / &#x27;no ip http secure-server&#x27;</td><td>Reduce la superficie de ataque: la administracion se hace por SSH.</td><td class='FAIL'>FAIL</td><td>servidor web activo</td></tr>
+<tr><td>H13</td><td>Set &#x27;no ip source-route&#x27;</td><td>Permite a un atacante dictar la ruta de sus paquetes y saltarse controles.</td><td class='FAIL'>FAIL</td><td>habilitado (por defecto)</td></tr>
+<tr><td>H14</td><td>Set &#x27;no ip bootp server&#x27;</td><td>Servicio obsoleto que no se usa; menos servicios, menos riesgo.</td><td class='FAIL'>FAIL</td><td>no deshabilitado</td></tr>
+<tr><td>H15</td><td>Set &#x27;no cdp run&#x27;</td><td>CDP revela modelo, IOS e IPs del equipo a cualquier vecino.</td><td class='FAIL'>FAIL</td><td>CDP activo</td></tr>
+<tr><td>H16</td><td>Set &#x27;service timestamps log datetime&#x27;</td><td>Sin hora exacta no se pueden correlacionar eventos en una investigacion.</td><td class='PASS'>PASS</td><td>timestamps en logs</td></tr>
+<tr><td>H17</td><td>Set &#x27;logging buffered&#x27; (severity level)</td><td>Conserva evidencia local de lo ocurrido en el equipo.</td><td class='FAIL'>FAIL</td><td>sin logging buffered</td></tr>
+<tr><td>H18</td><td>Enable login protection (&#x27;login block-for&#x27;)</td><td>Frena ataques de adivinacion de contrasenas contra las vty.</td><td class='FAIL'>FAIL</td><td>sin login block-for</td></tr>
+<tr><td>H19</td><td>Set &#x27;no ip proxy-arp&#x27;, &#x27;no ip redirects&#x27;, &#x27;no ip unreachables&#x27; on L3 interfaces</td><td>Evitan fuga de informacion y abuso (proxy ARP, redirects, ICMP unreachable).</td><td class='FAIL'>FAIL</td><td>faltan en: Vlan1</td></tr>
+<tr><td>H20</td><td>Enable &#x27;spanning-tree portfast bpduguard default&#x27;</td><td>Un switch pirata conectado a un puerto de acceso no puede alterar el STP.</td><td class='FAIL'>FAIL</td><td>no configurado</td></tr>
+<tr><td>H21</td><td>Do not use default SNMP community strings (public/private)</td><td>&#x27;public&#x27; y &#x27;private&#x27; son lo primero que prueba un atacante.</td><td class='PASS'>PASS</td><td>sin comunidades por defecto</td></tr>
+</table>
+</body></html>

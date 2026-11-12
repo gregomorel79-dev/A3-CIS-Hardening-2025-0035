@@ -1,0 +1,141 @@
+INFORME CIS HARDENING (APLICACION + INFORME POSTERIOR) - 2026-11-11 23:18:02
+Estudiante: Gregorys Morel Duluc | Matricula 2025-0035
+==============================================================================
+
+EQUIPO R1 (router)
+  -- ANTES: 3/20 controles (15%)
+   [FAIL] H01 Cifra las contrasenas en texto claro del running-config | no configurado
+   [FAIL] H02 Contrasena de modo privilegiado con hash (enable secret) | falta enable secret o hay enable password
+   [FAIL] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | sin usuario con secret
+   [FAIL] H04 Solo SSH en las lineas vty (sin Telnet) | falla en: line vty 0 4
+   [FAIL] H05 Las vty exigen usuario y contrasena locales | falla en: line vty 0 4
+   [FAIL] H06 Cierra sesiones inactivas (maximo 10 min) | sin timeout valido en: line con 0; line aux 0; line vty 0 4
+   [FAIL] H07 Deshabilita el puerto auxiliar | aux con exec activo
+   [FAIL] H08 Dominio configurado (requisito para generar claves SSH) | sin dominio
+   [FAIL] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2 no configurado
+   [FAIL] H10 Tiempo de negociacion y reintentos SSH limitados | faltan time-out/reintentos
+   [FAIL] H11 Aviso legal al conectarse | sin banner
+   [PASS] H12 Servidor web del equipo deshabilitado | HTTP/HTTPS deshabilitado
+   [FAIL] H13 Deshabilita el enrutamiento de origen (source routing) | habilitado (por defecto)
+   [FAIL] H14 Servicio BOOTP deshabilitado | no deshabilitado
+   [FAIL] H15 CDP deshabilitado globalmente | CDP activo
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [FAIL] H17 Registro local de eventos en memoria | sin logging buffered
+   [FAIL] H18 Bloqueo temporal tras intentos fallidos de login | sin login block-for
+   [FAIL] H19 Servicios IP innecesarios apagados en cada interfaz con IP | faltan en: FastEthernet0/0
+   [N/A ] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | N/A (solo switches)
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
+  -- DESPUES: 20/20 controles (100%)
+   [PASS] H01 Cifra las contrasenas en texto claro del running-config | presente
+   [PASS] H02 Contrasena de modo privilegiado con hash (enable secret) | enable secret presente
+   [PASS] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | usuarios con secret
+   [PASS] H04 Solo SSH en las lineas vty (sin Telnet) | todas las vty solo SSH
+   [PASS] H05 Las vty exigen usuario y contrasena locales | todas las vty con login local
+   [PASS] H06 Cierra sesiones inactivas (maximo 10 min) | todas las lineas <= 10 min
+   [PASS] H07 Deshabilita el puerto auxiliar | aux con no exec
+   [PASS] H08 Dominio configurado (requisito para generar claves SSH) | dominio configurado
+   [PASS] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2
+   [PASS] H10 Tiempo de negociacion y reintentos SSH limitados | time-out y reintentos limitados
+   [PASS] H11 Aviso legal al conectarse | banner presente
+   [PASS] H12 Servidor web del equipo deshabilitado | HTTP/HTTPS deshabilitado
+   [PASS] H13 Deshabilita el enrutamiento de origen (source routing) | deshabilitado
+   [PASS] H14 Servicio BOOTP deshabilitado | deshabilitado
+   [PASS] H15 CDP deshabilitado globalmente | CDP deshabilitado
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [PASS] H17 Registro local de eventos en memoria | logging buffered activo
+   [PASS] H18 Bloqueo temporal tras intentos fallidos de login | login block-for activo
+   [PASS] H19 Servicios IP innecesarios apagados en cada interfaz con IP | interfaces L3 endurecidas
+   [N/A ] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | N/A (solo switches)
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
+
+EQUIPO SW1 (switch)
+  -- ANTES: 3/21 controles (14%)
+   [FAIL] H01 Cifra las contrasenas en texto claro del running-config | no configurado
+   [FAIL] H02 Contrasena de modo privilegiado con hash (enable secret) | falta enable secret o hay enable password
+   [FAIL] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | sin usuario con secret
+   [FAIL] H04 Solo SSH en las lineas vty (sin Telnet) | falla en: line vty 0 4
+   [FAIL] H05 Las vty exigen usuario y contrasena locales | falla en: line vty 0 4
+   [FAIL] H06 Cierra sesiones inactivas (maximo 10 min) | sin timeout valido en: line con 0; line aux 0; line vty 0 4
+   [FAIL] H07 Deshabilita el puerto auxiliar | aux con exec activo
+   [FAIL] H08 Dominio configurado (requisito para generar claves SSH) | sin dominio
+   [FAIL] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2 no configurado
+   [FAIL] H10 Tiempo de negociacion y reintentos SSH limitados | faltan time-out/reintentos
+   [PASS] H11 Aviso legal al conectarse | banner presente
+   [FAIL] H12 Servidor web del equipo deshabilitado | servidor web activo
+   [FAIL] H13 Deshabilita el enrutamiento de origen (source routing) | habilitado (por defecto)
+   [FAIL] H14 Servicio BOOTP deshabilitado | no deshabilitado
+   [FAIL] H15 CDP deshabilitado globalmente | CDP activo
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [FAIL] H17 Registro local de eventos en memoria | sin logging buffered
+   [FAIL] H18 Bloqueo temporal tras intentos fallidos de login | sin login block-for
+   [FAIL] H19 Servicios IP innecesarios apagados en cada interfaz con IP | faltan en: Vlan1
+   [FAIL] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | no configurado
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
+  -- DESPUES: 21/21 controles (100%)
+   [PASS] H01 Cifra las contrasenas en texto claro del running-config | presente
+   [PASS] H02 Contrasena de modo privilegiado con hash (enable secret) | enable secret presente
+   [PASS] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | usuarios con secret
+   [PASS] H04 Solo SSH en las lineas vty (sin Telnet) | todas las vty solo SSH
+   [PASS] H05 Las vty exigen usuario y contrasena locales | todas las vty con login local
+   [PASS] H06 Cierra sesiones inactivas (maximo 10 min) | todas las lineas <= 10 min
+   [PASS] H07 Deshabilita el puerto auxiliar | aux con no exec
+   [PASS] H08 Dominio configurado (requisito para generar claves SSH) | dominio configurado
+   [PASS] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2
+   [PASS] H10 Tiempo de negociacion y reintentos SSH limitados | time-out y reintentos limitados
+   [PASS] H11 Aviso legal al conectarse | banner presente
+   [PASS] H12 Servidor web del equipo deshabilitado | HTTP/HTTPS deshabilitado
+   [PASS] H13 Deshabilita el enrutamiento de origen (source routing) | deshabilitado
+   [PASS] H14 Servicio BOOTP deshabilitado | deshabilitado
+   [PASS] H15 CDP deshabilitado globalmente | CDP deshabilitado
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [PASS] H17 Registro local de eventos en memoria | logging buffered activo
+   [PASS] H18 Bloqueo temporal tras intentos fallidos de login | login block-for activo
+   [PASS] H19 Servicios IP innecesarios apagados en cada interfaz con IP | interfaces L3 endurecidas
+   [PASS] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | bpduguard default activo
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
+
+EQUIPO SW2 (switch)
+  -- ANTES: 3/21 controles (14%)
+   [FAIL] H01 Cifra las contrasenas en texto claro del running-config | no configurado
+   [FAIL] H02 Contrasena de modo privilegiado con hash (enable secret) | falta enable secret o hay enable password
+   [FAIL] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | sin usuario con secret
+   [FAIL] H04 Solo SSH en las lineas vty (sin Telnet) | falla en: line vty 0 4
+   [FAIL] H05 Las vty exigen usuario y contrasena locales | falla en: line vty 0 4
+   [FAIL] H06 Cierra sesiones inactivas (maximo 10 min) | sin timeout valido en: line con 0; line aux 0; line vty 0 4
+   [FAIL] H07 Deshabilita el puerto auxiliar | aux con exec activo
+   [FAIL] H08 Dominio configurado (requisito para generar claves SSH) | sin dominio
+   [FAIL] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2 no configurado
+   [FAIL] H10 Tiempo de negociacion y reintentos SSH limitados | faltan time-out/reintentos
+   [PASS] H11 Aviso legal al conectarse | banner presente
+   [FAIL] H12 Servidor web del equipo deshabilitado | servidor web activo
+   [FAIL] H13 Deshabilita el enrutamiento de origen (source routing) | habilitado (por defecto)
+   [FAIL] H14 Servicio BOOTP deshabilitado | no deshabilitado
+   [FAIL] H15 CDP deshabilitado globalmente | CDP activo
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [FAIL] H17 Registro local de eventos en memoria | sin logging buffered
+   [FAIL] H18 Bloqueo temporal tras intentos fallidos de login | sin login block-for
+   [FAIL] H19 Servicios IP innecesarios apagados en cada interfaz con IP | faltan en: Vlan1
+   [FAIL] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | no configurado
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
+  -- DESPUES: 21/21 controles (100%)
+   [PASS] H01 Cifra las contrasenas en texto claro del running-config | presente
+   [PASS] H02 Contrasena de modo privilegiado con hash (enable secret) | enable secret presente
+   [PASS] H03 Usuarios locales con secret (hash) y sin contrasenas en texto claro | usuarios con secret
+   [PASS] H04 Solo SSH en las lineas vty (sin Telnet) | todas las vty solo SSH
+   [PASS] H05 Las vty exigen usuario y contrasena locales | todas las vty con login local
+   [PASS] H06 Cierra sesiones inactivas (maximo 10 min) | todas las lineas <= 10 min
+   [PASS] H07 Deshabilita el puerto auxiliar | aux con no exec
+   [PASS] H08 Dominio configurado (requisito para generar claves SSH) | dominio configurado
+   [PASS] H09 SSH version 2 (clave RSA creada si no existe) | SSH v2
+   [PASS] H10 Tiempo de negociacion y reintentos SSH limitados | time-out y reintentos limitados
+   [PASS] H11 Aviso legal al conectarse | banner presente
+   [PASS] H12 Servidor web del equipo deshabilitado | HTTP/HTTPS deshabilitado
+   [PASS] H13 Deshabilita el enrutamiento de origen (source routing) | deshabilitado
+   [PASS] H14 Servicio BOOTP deshabilitado | deshabilitado
+   [PASS] H15 CDP deshabilitado globalmente | CDP deshabilitado
+   [PASS] H16 Logs con fecha y hora | timestamps en logs
+   [PASS] H17 Registro local de eventos en memoria | logging buffered activo
+   [PASS] H18 Bloqueo temporal tras intentos fallidos de login | login block-for activo
+   [PASS] H19 Servicios IP innecesarios apagados en cada interfaz con IP | interfaces L3 endurecidas
+   [PASS] H20 BPDU Guard por defecto en puertos de acceso (solo switches) | bpduguard default activo
+   [PASS] H21 SNMP sin comunidades por defecto | sin comunidades por defecto
