@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-cis_hardening.py  -  Auditoria y hardening automatizado (CIS Cisco IOS Benchmark)
+cis_hardening.py  -  Auditoria y hardening automatizado (CIS Cisco IOS + CIS FortiGate Benchmark)
 Estudiante: Gregorys Morel Duluc | Matricula 2025-0035 | Seguridad de Redes - ITLA
 
-Escanea los equipos de la topologia (R1, SW1, SW2) por la consola Telnet de GNS3
-y evalua las recomendaciones CIS elegidas.
+Escanea los equipos de la topologia (R1 router, SW1/SW2 switches, FW1 firewall FortiGate)
+por la consola Telnet de GNS3 y evalua las recomendaciones CIS elegidas.
 
 Modos:
   --mode audit   Solo crea el informe (NO aplica ninguna regla).
@@ -19,13 +19,16 @@ Ejemplos:
   python cis_hardening.py --mode audit
   python cis_hardening.py --mode apply
   python cis_hardening.py --mode audit --devices R1,SW1
+  python cis_hardening.py --mode audit --devices FW1 --ports FW1=5004
   python cis_hardening.py --mode audit --offline-dir ../configs
 """
 import argparse, socket, time, re, os, sys, datetime, html
 
 DEFAULT_HOST = "192.168.56.102"                      # GNS3 VM
-DEFAULT_PORTS = {"R1": 5000, "SW1": 5001, "SW2": 5003}  # consolas telnet (Topology Summary)
-DEVTYPE = {"R1": "router", "SW1": "switch", "SW2": "switch"}
+DEFAULT_PORTS = {"R1": 5000, "SW1": 5001, "SW2": 5003, "FW1": 5004}  # consolas telnet (Topology Summary)
+DEVTYPE = {"R1": "router", "SW1": "switch", "SW2": "switch", "FW1": "firewall"}
+FGT_HOSTNAME = "FW1"
+FGT_TRUSTHOST = "10.20.35.0 255.255.255.0"   # red de gestion permitida (trusthost del admin)
 
 ADMIN_USER = "admin"
 ADMIN_PASS = "Local2025Lab"
@@ -34,12 +37,13 @@ DOMAIN = "lab20250035.local"
 BANNER = "ACCESO RESTRINGIDO - Solo personal autorizado. Toda actividad es monitoreada."
 
 IAC, DONT, DO, WONT, WILL, SB, SE = 255, 254, 253, 252, 251, 250, 240
-PROMPT_RE = re.compile(r"(?:^|\n)([A-Za-z0-9_.\-]+(?:\([A-Za-z0-9_.\-/ ]+\))?[#>])\s*$")
+PROMPT_RE = re.compile(r"(?:^|\n)([A-Za-z0-9_.\-]+(?: ?\([A-Za-z0-9_.\-/ \"]+\))? ?[#>])\s*$")
 
 
 # ----------------------------------------------------------------- consola telnet
 class Console:
-    def __init__(self, host, port):
+    def __init__(self, host, port, login=None):
+        self.login = login            # (usuario, clave) para equipos que piden login (FortiGate)
         self.sock = socket.create_connection((host, port), timeout=10)
         self.sock.settimeout(0.5)
 
@@ -103,6 +107,7 @@ class Console:
         """Deja la consola en modo privilegiado (#). Paciente con equipos que arrancan."""
         self.drain(0.6)
         last = ""
+        tries = 0
         for _ in range(30):
             self.sock.sendall(b"\r")
             buf = self.read_until_prompt(5).replace("\r", "")
@@ -117,6 +122,16 @@ class Console:
                     self.sock.sendall(b"enable\r"); self.read_until_prompt(4); continue
                 return p
             low = buf.lower()
+            if self.login and re.search(r"login:\s*$", low):
+                tries += 1
+                if tries > 3:
+                    raise RuntimeError("Login rechazado en la consola: revisa usuario/clave (%s)" % self.login[0])
+                self.sock.sendall(self.login[0].encode() + b"\r")
+                b2 = self.read_until_prompt(3).lower()
+                if "assword" in b2:
+                    self.sock.sendall(self.login[1].encode() + b"\r")
+                time.sleep(3)
+                continue
             if "initial configuration dialog" in low:
                 self.sock.sendall(b"no\r"); time.sleep(3); continue
             if "terminate autoinstall" in low:
@@ -163,6 +178,66 @@ class Cfg:
 
     def blocks(self, rx):
         return [(h, c) for h, c in self.top if re.search(rx, h)]
+
+
+class FgtCfg:
+    """Parser de la salida 'show' de FortiOS. El texto se guarda por secciones '### <ruta>'."""
+    def __init__(self, text):
+        self.text = text
+        self.sections, cur = {}, None
+        for line in text.splitlines():
+            m = re.match(r"^### (.+)$", line)
+            if m:
+                cur = m.group(1).strip()
+                self.sections[cur] = []
+            elif cur is not None:
+                self.sections[cur].append(line)
+
+    @staticmethod
+    def _clean(v):
+        v = v.strip()
+        return v.replace('"', "") if v.startswith('"') else v
+
+    def val(self, path, key):
+        """Valor de 'set <key>' a nivel superior de una seccion de un solo objeto."""
+        depth, res = 0, None
+        for l in self.sections.get(path, []):
+            t = l.strip()
+            if t.startswith(("config ", "edit ")):
+                depth += 1
+            elif t in ("end", "next"):
+                depth -= 1
+            elif depth == 1:
+                m = re.match(r"^set %s\s+(.*)$" % re.escape(key), t)
+                if m:
+                    res = self._clean(m.group(1))
+        return res
+
+    def entries(self, path):
+        """Tabla de objetos ('edit X' ... 'next') -> {nombre: {clave: valor}}."""
+        out, depth, cur = {}, 0, None
+        for l in self.sections.get(path, []):
+            t = l.strip()
+            m = re.match(r"^edit\s+(.+)$", t)
+            if m and depth == 1:
+                cur = self._clean(m.group(1))
+                out[cur] = {}
+                depth += 1
+            elif t.startswith("config "):
+                depth += 1
+            elif t == "next" or t == "end":
+                depth -= 1
+                if depth == 1:
+                    cur = None
+            elif cur is not None and depth == 2:
+                m = re.match(r"^set\s+(\S+)\s+(.*)$", t)
+                if m:
+                    out[cur][m.group(1)] = self._clean(m.group(2))
+        return out
+
+
+def make_cfg(text, dtype):
+    return FgtCfg(text) if dtype == "firewall" else Cfg(text)
 
 
 def child(children, rx):
@@ -400,9 +475,185 @@ def c21(c, t):
     return not bad, "sin comunidades por defecto" if not bad else "comunidad por defecto: " + ",".join(set(bad)), cmds
 
 
+# ----------------------------------------------------------------- controles CIS FortiGate (scope firewall)
+def _int(v, d=None):
+    try:
+        return int(str(v).split()[0])
+    except Exception:
+        return d
+
+
+def _fgt_set(path, *sets):
+    return ["config " + path] + ["set " + x for x in sets] + ["end"]
+
+
+@check("F01", "Ensure hostname is set",
+       "FortiGate: nombre de equipo distinto al de fabrica",
+       "Identifica el equipo en logs y alertas; un nombre generico dificulta la trazabilidad.", scope="firewall")
+def f01(c, t):
+    h = c.val("system global", "hostname")
+    if h is None:
+        return None, "N/A (sin dato)", []
+    ok = bool(h) and not h.lower().startswith("fortigate")
+    return ok, "hostname " + h, _fgt_set("system global", "hostname " + FGT_HOSTNAME)
+
+
+@check("F02", "Ensure 'admin-telnet' is disabled",
+       "FortiGate: administracion por Telnet deshabilitada",
+       "Telnet envia usuario y clave en texto claro; solo se permite administracion cifrada.", scope="firewall")
+def f02(c, t):
+    v = c.val("system global", "admin-telnet")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "disable", "admin-telnet " + v, _fgt_set("system global", "admin-telnet disable")
+
+
+@check("F03", "Ensure only HTTPS and SSH are allowed for administrative access on interfaces",
+       "FortiGate: sin 'http' ni 'telnet' en allowaccess de las interfaces",
+       "Reduce la superficie de ataque del plano de administracion a canales cifrados.", scope="firewall")
+def f03(c, t):
+    ents = c.entries("system interface")
+    if not ents:
+        return None, "N/A (sin interfaces)", []
+    bad, cmds = [], []
+    for name, e in ents.items():
+        acc = e.get("allowaccess", "").split()
+        if set(acc) & {"http", "telnet"}:
+            bad.append("%s(%s)" % (name, ",".join(sorted(set(acc) & {"http", "telnet"}))))
+            new = [x for x in acc if x not in ("http", "telnet")] or ["ping"]
+            cmds += ["config system interface", 'edit "%s"' % name, "set allowaccess " + " ".join(new), "next", "end"]
+    return not bad, "ok" if not bad else "permitido en: " + ", ".join(bad), cmds
+
+
+@check("F04", "Ensure 'Pre-Login Banner' is set",
+       "FortiGate: aviso legal antes del login",
+       "Deja constancia de que el acceso es solo para personal autorizado.", scope="firewall")
+def f04(c, t):
+    v = c.val("system global", "pre-login-banner")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "enable", "pre-login-banner " + v, _fgt_set("system global", "pre-login-banner enable")
+
+
+@check("F05", "Ensure 'Post-Login Banner' is set",
+       "FortiGate: aviso legal despues del login",
+       "Refuerza el aviso legal de monitoreo una vez autenticado el administrador.", scope="firewall")
+def f05(c, t):
+    v = c.val("system global", "post-login-banner")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "enable", "post-login-banner " + v, _fgt_set("system global", "post-login-banner enable")
+
+
+@check("F06", "Ensure idle timeout time is configured (admintimeout <= 5)",
+       "FortiGate: cierre de sesion de administracion por inactividad <= 5 min",
+       "Una sesion de administrador abandonada no debe quedar abierta.", scope="firewall")
+def f06(c, t):
+    v = _int(c.val("system global", "admintimeout"))
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v <= 5, "admintimeout %d" % v, _fgt_set("system global", "admintimeout 5")
+
+
+@check("F07", "Ensure administrator password retries and lockout time are configured",
+       "FortiGate: bloqueo tras <=3 intentos fallidos durante >=900 s",
+       "Frena los ataques de fuerza bruta contra la cuenta de administrador.", scope="firewall")
+def f07(c, t):
+    th = _int(c.val("system global", "admin-lockout-threshold"))
+    du = _int(c.val("system global", "admin-lockout-duration"))
+    if th is None or du is None:
+        return None, "N/A (sin dato)", []
+    ok = 1 <= th <= 3 and du >= 900
+    return ok, "threshold %d, duration %d s" % (th, du), \
+        _fgt_set("system global", "admin-lockout-threshold 3", "admin-lockout-duration 900")
+
+
+@check("F08", "Ensure only TLS 1.2 or higher is used for HTTPS administrative access",
+       "FortiGate: HTTPS de administracion solo con TLS 1.2 / 1.3",
+       "TLS 1.0 y 1.1 estan obsoletos y son vulnerables.", scope="firewall")
+def f08(c, t):
+    v = c.val("system global", "admin-https-ssl-versions")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    ok = not re.search(r"tlsv1-0|tlsv1-1|sslv3", v)
+    return ok, "versiones: " + v, _fgt_set("system global", "admin-https-ssl-versions tlsv1-2 tlsv1-3")
+
+
+@check("F09", "Ensure 'strong-crypto' is enabled",
+       "FortiGate: criptografia fuerte global",
+       "Obliga a usar cifrados y protocolos robustos en los servicios del equipo.", scope="firewall")
+def f09(c, t):
+    v = c.val("system global", "strong-crypto")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "enable", "strong-crypto " + v, _fgt_set("system global", "strong-crypto enable")
+
+
+@check("F10", "Ensure 'Password Policy' is enabled",
+       "FortiGate: politica de contrasenas (longitud y complejidad)",
+       "Evita contrasenas debiles en las cuentas de administracion.", scope="firewall")
+def f10(c, t):
+    p = "system password-policy"
+    st = c.val(p, "status")
+    if st is None:
+        return None, "N/A (sin dato)", []
+    ok = st == "enable" and (_int(c.val(p, "minimum-length"), 0) >= 8) and all(
+        _int(c.val(p, k), 0) >= 1 for k in ("min-upper-case-letter", "min-lower-case-letter", "min-number", "min-non-alphanumeric"))
+    cmds = ["config system password-policy", "set status enable", "?set apply-to admin-password", "set minimum-length 8",
+            "set min-upper-case-letter 1", "set min-lower-case-letter 1", "set min-number 1",
+            "set min-non-alphanumeric 1", "?set expire-status enable", "?set expire-day 90", "end"]
+    return ok, "status %s, minimum-length %s" % (st, c.val(p, "minimum-length")), cmds
+
+
+@check("F11", "Ensure administrator accounts are restricted with trusted hosts",
+       "FortiGate: cada administrador con 'trusthost' (solo la red de gestion)",
+       "Aunque la clave se filtre, solo se puede administrar desde la red de gestion.", scope="firewall")
+def f11(c, t):
+    ents = c.entries("system admin")
+    if not ents:
+        return None, "N/A (sin administradores)", []
+    bad = [n for n, e in ents.items() if not e.get("trusthost1") or e["trusthost1"].startswith("0.0.0.0")]
+    cmds = []
+    for n in bad:
+        cmds += ["config system admin", 'edit "%s"' % n, "set trusthost1 " + FGT_TRUSTHOST, "next", "end"]
+    return not bad, "ok" if not bad else "sin trusthost: " + ", ".join(bad), cmds
+
+
+@check("F12", "Ensure local logging is enabled",
+       "FortiGate: registro de eventos local habilitado",
+       "Sin registros no hay forma de investigar un incidente.", scope="firewall")
+def f12(c, t):
+    v = c.val("log memory setting", "status")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "enable", "log memory status " + v, _fgt_set("log memory setting", "status enable")
+
+
+@check("F13", "Ensure default SNMP community strings are not used",
+       "FortiGate: sin comunidades SNMP 'public'/'private'",
+       "Las comunidades por defecto son lo primero que prueba un atacante.", scope="firewall")
+def f13(c, t):
+    ents = c.entries("system snmp community")
+    bad = [i for i, e in ents.items() if e.get("name", "").lower() in ("public", "private")]
+    cmds = ["config system snmp community"] + ["delete " + i for i in bad] + ["end"] if bad else []
+    return not bad, "sin comunidades por defecto" if not bad else "comunidad por defecto en id " + ",".join(bad), cmds
+
+
+@check("F14", "Ensure correct system time is configured through NTP",
+       "FortiGate: sincronizacion NTP habilitada",
+       "Hora correcta = logs correlacionables y certificados validos.", scope="firewall")
+def f14(c, t):
+    v = c.val("system ntp", "ntpsync")
+    if v is None:
+        return None, "N/A (sin dato)", []
+    return v == "enable", "ntpsync " + v, _fgt_set("system ntp", "ntpsync enable")
+
+
 def evaluate(cfg, dtype):
     rows = []
     for k in CHECKS:
+        if (dtype == "firewall") != (k["scope"] == "firewall"):
+            continue
         st, det, fix = k["fn"](cfg, dtype)
         rows.append(dict(id=k["id"], cis=k["cis"], title=k["title"], why=k["why"], ok=st, detail=det, fix=fix))
     return rows
@@ -420,6 +671,40 @@ def get_config(con):
     out = con.run("show running-config", timeout=90)
     out = re.sub(r"^(Building configuration\.\.\.|Current configuration.*)\n?", "", out, flags=re.M)
     return out
+
+
+FGT_SECTIONS = [("system global", True), ("system password-policy", True), ("system interface", False),
+                ("system admin", False), ("system snmp community", False), ("system ntp", True),
+                ("log memory setting", True)]
+
+
+def get_config_fgt(con):
+    """Concatena las secciones relevantes de FortiOS (cada una marcada con '### ruta')."""
+    for c in ("config system console", "set output standard", "end"):
+        con.run(c)
+    out = []
+    for path, full in FGT_SECTIONS:
+        r = con.run(("show full-configuration " if full else "show ") + path, timeout=60)
+        out.append("### " + path + "\n" + r + "\n")
+    return "\n".join(out)
+
+
+def apply_fixes_fgt(con, rows, log):
+    cmds = []
+    for r in rows:
+        if r["ok"] is False:
+            cmds += r["fix"]
+    if not cmds:
+        return [], []
+    errors, applied = [], []
+    for cmd in cmds:
+        opt = cmd.startswith("?")
+        cmd = cmd.lstrip("?")
+        out = con.run(cmd, timeout=40)
+        applied.append(cmd)
+        if re.search(r"(?i)parse error|unknown action|command fail|invalid|not found|-\d{2,3}\b", out) and not opt:
+            errors.append("%s -> %s" % (cmd, (out.strip().splitlines() or ["?"])[0]))
+    return applied, errors
 
 
 def apply_fixes(con, rows, log):
@@ -512,11 +797,11 @@ def html_report(mode, results, stamp):
 
 # ----------------------------------------------------------------- main
 def main():
-    ap = argparse.ArgumentParser(description="Auditoria / hardening CIS Cisco IOS")
+    ap = argparse.ArgumentParser(description="Auditoria / hardening CIS (Cisco IOS + FortiGate)")
     ap.add_argument("--mode", choices=["audit", "apply", "report"], default="audit")
-    ap.add_argument("--devices", default="R1,SW1,SW2")
+    ap.add_argument("--devices", default="R1,SW1,SW2,FW1")
     ap.add_argument("--host", default=DEFAULT_HOST)
-    ap.add_argument("--ports", default="", help="R1=5000,SW1=5001,SW2=5003")
+    ap.add_argument("--ports", default="", help="R1=5000,SW1=5001,SW2=5003,FW1=5004")
     ap.add_argument("--offline-dir", default="", help="audita <EQUIPO>*.txt guardados, sin conectarse")
     ap.add_argument("--configs-dir", default="configs")
     ap.add_argument("--reports-dir", default="reports")
@@ -547,23 +832,24 @@ def main():
             if not fn:
                 raise RuntimeError("sin archivo offline para " + dev)
             text = open(os.path.join(a.offline_dir, fn[0]), encoding="utf-8", errors="replace").read()
-            d["before"] = evaluate(Cfg(text), dtype)
+            d["before"] = evaluate(make_cfg(text, dtype), dtype)
             return
-        con = Console(a.host, ports[dev])
+        fw = dtype == "firewall"
+        con = Console(a.host, ports[dev], login=(ADMIN_USER, ADMIN_PASS) if fw else None)
         try:
             con.sync()
-            text = get_config(con)
+            text = get_config_fgt(con) if fw else get_config(con)
             open(os.path.join(a.configs_dir, "%s-running-config-ANTES.txt" % dev), "w", encoding="utf-8").write(text)
-            d["before"] = evaluate(Cfg(text), dtype)
+            d["before"] = evaluate(make_cfg(text, dtype), dtype)
             p, n, pc = score(d["before"])
             log("  ANTES: %d/%d controles (%.0f%%)" % (p, n, pc))
             if a.mode == "apply":
                 log("  aplicando reglas ...")
-                d["applied"], d["errors"] = apply_fixes(con, d["before"], log)
+                d["applied"], d["errors"] = (apply_fixes_fgt if fw else apply_fixes)(con, d["before"], log)
                 con.sync()
-                text2 = get_config(con)
+                text2 = get_config_fgt(con) if fw else get_config(con)
                 open(os.path.join(a.configs_dir, "%s-running-config-DESPUES.txt" % dev), "w", encoding="utf-8").write(text2)
-                d["after"] = evaluate(Cfg(text2), dtype)
+                d["after"] = evaluate(make_cfg(text2, dtype), dtype)
                 p, n, pc = score(d["after"])
                 log("  DESPUES: %d/%d controles (%.0f%%)" % (p, n, pc))
         finally:
@@ -577,8 +863,8 @@ def main():
             if not (os.path.exists(fa) and os.path.exists(fb)):
                 log("  sin ANTES/DESPUES guardados para " + dev); continue
             d = {"applied": [], "errors": []}
-            d["before"] = evaluate(Cfg(open(fa, encoding="utf-8", errors="replace").read()), dtype)
-            d["after"] = evaluate(Cfg(open(fb, encoding="utf-8", errors="replace").read()), dtype)
+            d["before"] = evaluate(make_cfg(open(fa, encoding="utf-8", errors="replace").read(), dtype), dtype)
+            d["after"] = evaluate(make_cfg(open(fb, encoding="utf-8", errors="replace").read(), dtype), dtype)
             for tag in ("before", "after"):
                 p_, n_, pc_ = score(d[tag])
                 log("  %s %s: %d/%d (%.0f%%)" % (dev, tag.upper(), p_, n_, pc_))
