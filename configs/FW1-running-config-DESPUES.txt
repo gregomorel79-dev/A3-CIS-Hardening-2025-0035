@@ -1,0 +1,294 @@
+### system global
+config system global
+    set admin-concurrent enable
+    set admin-console-timeout 0
+    set admin-forticloud-sso-login disable
+    set admin-host ''
+    set admin-https-pki-required disable
+    unset admin-https-ssl-banned-ciphers
+    set admin-https-ssl-ciphersuites TLS-AES-128-GCM-SHA256 TLS-AES-256-GCM-SHA384 TLS-CHACHA20-POLY1305-SHA256
+    set admin-https-ssl-versions tlsv1-2
+    set admin-lockout-duration 900
+    set admin-lockout-threshold 3
+    set admin-login-max 100
+    set admin-maintainer enable
+    set admin-port 80
+    set admin-restrict-local disable
+    set admin-scp disable
+    set admin-server-cert "self-sign"
+    set admin-sport 443
+    set admin-ssh-grace-time 120
+    set admin-ssh-password enable
+    set admin-ssh-port 22
+    set admin-ssh-v1 disable
+    set admin-telnet disable
+    set admintimeout 5
+    set alias "FortiGate-VM64-KVM"
+    set allow-traffic-redirect enable
+    set anti-replay strict
+    set arp-max-entry 131072
+    set auth-cert "self-sign"
+    set auth-http-port 1000
+    set auth-https-port 1003
+    set auth-keepalive disable
+    set auth-session-limit block-new
+    set auto-auth-extension-device enable
+    set autorun-log-fsck disable
+    set av-affinity "0"
+    set av-failopen pass
+    set av-failopen-session disable
+    set batch-cmdb enable
+    set block-session-timer 30
+    set br-fdb-max-entry 8192
+    set cert-chain-max 8
+    set cfg-save automatic
+    set check-protocol-header loose
+    set check-reset-range disable
+    set cli-audit-log disable
+    set cloud-communication enable
+    set clt-cert-req disable
+    set cmdbsvr-affinity "0"
+    set cpu-use-threshold 90
+    set csr-ca-attribute enable
+    set daily-restart disable
+    set default-service-source-port 1-65535
+    set device-idle-timeout 300
+    set dh-params 2048
+    set dnsproxy-worker-count 1
+    set dst enable
+    set early-tcp-npu-session disable
+    set extender-controller-reserved-network 10.252.0.1 255.255.0.0
+    set faz-disk-buffer-size 0
+    set fds-statistics enable
+    unset fgd-alert-subscription
+    set fortiextender disable
+    set fortiextender-data-port 25246
+    set fortiextender-discovery-lockdown disable
+    set fortiextender-vlan-mode disable
+    set fortiservice-port 8013
+    set fortitoken-cloud enable
+    set gui-allow-default-hostname disable
+    set gui-cdn-usage enable
+    set gui-certificates enable
+    set gui-custom-language disable
+    set gui-date-format yyyy/MM/dd
+    set gui-date-time-source system
+    set gui-device-latitude ''
+    set gui-device-longitude ''
+    set gui-display-hostname disable
+    set gui-firmware-upgrade-warning enable
+    set gui-forticare-registration-setup-warning enable
+    set gui-fortigate-cloud-sandbox disable
+    set gui-fortiguard-resource-fetch enable
+    set gui-ipv6 disable
+    set gui-local-out disable
+    set gui-replacement-message-groups disable
+    set gui-rest-api-cache enable
+    set gui-theme jade
+    set gui-wireless-opensecurity disable
+    set ha-affinity "0"
+    set honor-df enable
+    set hostname "FW1"
+    set igmp-state-limit 3200
+    set internet-service-database standard
+    set ip-fragment-mem-thresholds 32
+    set ip-src-port-range 1024-25000
+    set ips-affinity "0"
+    set ipsec-ha-seqjump-rate 10
+    set ipsec-qat-offload enable
+    set ipsec-round-robin disable
+    set ipsec-soft-dec-async disable
+    set ipv6-accept-dad 1
+    set ipv6-allow-anycast-probe disable
+    set ipv6-allow-local-in-slient-drop enable
+    set ipv6-allow-multicast-probe disable
+    set ipv6-allow-traffic-redirect enable
+    set irq-time-accounting auto
+    set language english
+    set ldapconntimeout 500
+    set lldp-reception disable
+    set lldp-transmission disable
+    set log-ssl-connection disable
+    set log-uuid-address disable
+    set login-timestamp disable
+    set management-ip ''
+    set management-port-use-admin-sport enable
+    set management-vdom "root"
+    set max-route-cache-size 0
+    set memory-use-threshold-extreme 95
+    set memory-use-threshold-green 82
+    set memory-use-threshold-red 88
+    set miglog-affinity "0"
+    set miglogd-children 0
+    set multi-factor-authentication optional
+    set ndp-max-entry 0
+    set per-user-bal disable
+    set pmtu-discovery disable
+    set policy-auth-concurrent 0
+    set post-login-banner enable
+    set pre-login-banner enable
+    set proxy-auth-lifetime disable
+    set proxy-auth-timeout 10
+    set proxy-cert-use-mgmt-vdom disable
+    set proxy-re-authentication-mode session
+    set proxy-resource-mode disable
+    set radius-port 1812
+    set reboot-upon-config-restore enable
+    set refresh 0
+    set remoteauthtimeout 5
+    set reset-sessionless-tcp disable
+    set revision-backup-on-logout disable
+    set revision-image-auto-backup disable
+    set scanunit-count 0
+    set security-rating-result-submission enable
+    set security-rating-run-on-schedule enable
+    set send-pmtu-icmp enable
+    set snat-route-change disable
+    set special-file-23-support disable
+    set speedtest-server disable
+    set ssd-trim-freq weekly
+    set ssd-trim-hour 1
+    set ssd-trim-min 60
+    set ssd-trim-weekday sunday
+    set ssh-enc-algo chacha20-poly1305@openssh.com aes128-ctr aes192-ctr aes256-ctr arcfour256 arcfour128 aes128-cbc 3des-cbc blowfish-cbc cast128-cbc aes192-cbc aes256-cbc arcfour rijndael-cbc@lysator.liu.se aes128-gcm@openssh.com aes256-gcm@openssh.com
+    set ssh-kex-algo diffie-hellman-group14-sha1 diffie-hellman-group-exchange-sha1 diffie-hellman-group-exchange-sha256 curve25519-sha256@libssh.org ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521
+    set ssh-mac-algo hmac-md5 hmac-md5-etm@openssh.com hmac-md5-96 hmac-md5-96-etm@openssh.com hmac-sha1 hmac-sha1-etm@openssh.com hmac-sha2-256 hmac-sha2-256-etm@openssh.com hmac-sha2-512 hmac-sha2-512-etm@openssh.com hmac-ripemd160 hmac-ripemd160@openssh.com hmac-ripemd160-etm@openssh.com umac-64@openssh.com umac-128@openssh.com umac-64-etm@openssh.com umac-128-etm@openssh.com
+    set ssl-min-proto-version SSLv3
+    set ssl-static-key-ciphers enable
+    set sslvpn-ems-sn-check disable
+    set sslvpn-plugin-version-check enable
+    set strict-dirty-session-check enable
+    set switch-controller disable
+    set switch-controller-reserved-network 10.255.0.0 255.255.0.0
+    set sys-perf-log-interval 5
+    set tcp-halfclose-timer 120
+    set tcp-halfopen-timer 10
+    set tcp-option enable
+    set tcp-rst-timer 5
+    set tcp-timewait-timer 1
+    set timezone 04
+    set traffic-priority tos
+    set traffic-priority-level medium
+    set two-factor-email-expiry 60
+    set two-factor-fac-expiry 60
+    set two-factor-ftk-expiry 60
+    set two-factor-ftm-expiry 72
+    set two-factor-sms-expiry 60
+    set udp-idle-timer 180
+    set url-filter-affinity "0"
+    set url-filter-count 1
+    set user-device-store-max-devices 10457
+    set user-device-store-max-unified-mem 52287488
+    set user-device-store-max-users 10457
+    set user-server-cert "self-sign"
+    set vip-arp-range restricted
+    set wad-affinity "0"
+    set wad-memory-change-granularity 10
+    set wad-source-affinity enable
+    set wifi-ca-certificate "Fortinet_CA"
+    set wifi-certificate "Fortinet_Factory"
+    set wimax-4g-usb disable
+    set wireless-controller enable
+    set wireless-controller-port 5246
+    set fds-statistics-period 60
+end
+
+### system password-policy
+config system password-policy
+    set status enable
+    set apply-to admin-password
+    set minimum-length 8
+    set min-lower-case-letter 1
+    set min-upper-case-letter 1
+    set min-non-alphanumeric 1
+    set min-number 1
+    set min-change-characters 0
+    set expire-status enable
+    set expire-day 90
+    set reuse-password enable
+end
+
+### system interface
+config system interface
+    edit "port1"
+        set vdom "root"
+        set ip 10.20.35.4 255.255.255.0
+        set allowaccess ping https ssh
+        set type physical
+        set snmp-index 1
+    next
+    edit "port2"
+        set vdom "root"
+        set type physical
+        set snmp-index 2
+    next
+    edit "port3"
+        set vdom "root"
+        set type physical
+        set snmp-index 3
+    next
+    edit "port4"
+        set vdom "root"
+        set type physical
+        set snmp-index 4
+    next
+    edit "naf.root"
+        set vdom "root"
+        set type tunnel
+        set src-check disable
+        set snmp-index 5
+    next
+    edit "l2t.root"
+        set vdom "root"
+        set type tunnel
+        set snmp-index 6
+    next
+    edit "ssl.root"
+        set vdom "root"
+        set type tunnel
+        set alias "SSL VPN interface"
+        set snmp-index 7
+    next
+    edit "fortilink"
+        set vdom "root"
+        set fortilink enable
+        set ip 10.255.1.1 255.255.255.0
+        set allowaccess ping fabric
+        set type aggregate
+        set lldp-reception enable
+        set lldp-transmission enable
+        set snmp-index 8
+    next
+end
+
+### system admin
+config system admin
+    edit "admin"
+        set trusthost1 10.20.35.0 255.255.255.0
+        set accprofile "super_admin"
+        set vdom "root"
+        set password-expire 2027-02-11 15:07:57
+        set password ENC SH2SVn+/Vp0UiLna6YHfbtLVUM9pE2jvqTWnzqNuschKle9zXpQryvT6OXAqqg=
+    next
+end
+
+### system snmp community
+config system snmp community
+end
+
+### system ntp
+config system ntp
+    set ntpsync enable
+    set type fortiguard
+    set syncinterval 60
+    set source-ip 0.0.0.0
+    set source-ip6 ::
+    set server-mode enable
+    set authentication disable
+    set interface "fortilink"
+end
+
+### log memory setting
+config log memory setting
+    set status enable
+end
