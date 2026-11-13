@@ -113,7 +113,27 @@ Auditoría inicial de R1 (modo `--mode audit`, sin aplicar nada): 3 de 20 contro
 
 Se incluye un firewall FortiGate (FW1) conectado a SW1. El mismo script lo audita por consola y aplica 13 controles: hostname, Telnet de administración deshabilitado, sin `http`/`telnet` en `allowaccess`, avisos legales antes y después del login, cierre por inactividad (≤ 5 min), bloqueo tras intentos fallidos, HTTPS solo con TLS 1.2/1.3, política de contraseñas, `trusthost` por administrador, registro local, SNMP sin comunidades por defecto y NTP. Resultado: **7/13 (54 %) → 13/13 (100 %)**.
 
+Configuración inicial de FW1 por consola (hostname, IP 10.20.35.4/24 en `port1` y acceso de administración) y conectividad con el resto de la red:
+
+![Configuración inicial de FW1](img/08-fw1-configuracion-inicial.png)
+
+![Ping a FW1](img/09-fw1-ping.png)
+
+Auditoría inicial de FW1 (modo `--mode audit`, sin aplicar nada): fallan los controles de `allowaccess`, avisos legales, bloqueo por intentos fallidos, política de contraseñas y `trusthost`.
+
+![Auditoría inicial de FW1](img/10-fw1-auditoria-inicial.png)
+
+Aplicación de las reglas en FW1 (`--mode apply`), con el resultado final de los 13 controles:
+
 ![Aplicación en FW1](img/07-fw1-aplicacion.png)
+
+Auditoría final de los equipos (switches y firewall) y generación del informe antes/después:
+
+![Auditoría final de switches y FW1](img/11-auditoria-final-switches-fw1.png)
+
+![Informe antes/después de FW1](img/12-fw1-informe-antes-despues.png)
+
+> Nota: para grabar la demostración del firewall en vivo, FW1 se devolvió a su configuración insegura inicial y se repitió la auditoría y la aplicación. Por eso el "antes" del informe de FW1 es de **7/13 (54 %)**; la primera auditoría, hecha antes de aplicar nada por primera vez, había dado 6/13 (46 %).
 
 Los informes completos están en [`reports/`](reports/) y los `running-config` en [`configs/`](configs/).
 
