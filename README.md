@@ -33,9 +33,9 @@ El direccionamiento se deriva de la matrícula **2025-0035**: red **10.20.35.0/2
 
 | Equipo | Modelo | Rol | IP de gestión | Consola GNS3 |
 |---|---|---|---|---|
-| R1 | Cisco 7200 (IOS 15.2) | Router | 10.20.35.1/24 (Fa0/0) | 192.168.56.102:5000 |
-| SW1 | Cisco IOSvL2 | Switch | 10.20.35.2/24 (Vlan1) | 192.168.56.102:5001 |
-| SW2 | Cisco IOSvL2 | Switch | 10.20.35.3/24 (Vlan1) | 192.168.56.102:5003 |
+| R1 | Cisco 7200 (IOS 15.2) | Router | 10.20.35.1/24 (Fa0/0) | 192.168.56.102:5002 |
+| SW1 | Cisco IOSvL2 | Switch | 10.20.35.2/24 (Vlan1) | 192.168.56.102:5003 |
+| SW2 | Cisco IOSvL2 | Switch | 10.20.35.3/24 (Vlan1) | 192.168.56.102:5005 |
 | FW1 | FortiGate 7.0.9 (VM) | Firewall | 10.20.35.4/24 (port1, conectado a SW1 Gi0/3) | 192.168.56.102:5010 |
 
 Entorno: GNS3 2.2 + GNS3 VM (VirtualBox). La misma red de la práctica anterior, ahora endurecida.
