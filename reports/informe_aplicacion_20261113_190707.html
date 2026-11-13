@@ -1,0 +1,53 @@
+<html><head><meta charset='utf-8'><title>Informe CIS</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:24px;color:#222}h1{color:#1a2b4a}table{border-collapse:collapse;width:100%;margin:8px 0 24px}th,td{border:1px solid #ccc;padding:6px 8px;font-size:13px;text-align:left}th{background:#1a2b4a;color:#fff}.PASS{background:#e3f6e8;color:#157a35;font-weight:600}.FAIL{background:#fde4e1;color:#b32a1c;font-weight:600}.NA{background:#eee;color:#666}.score{font-size:18px;font-weight:700}</style></head><body>
+<h1>Informe CIS Hardening &mdash; Aplicaci&oacute;n de reglas + informe posterior</h1>
+<p>Estudiante: Gregorys Morel Duluc &middot; Matr&iacute;cula 2025-0035 &middot; Generado: 2026-11-13 19:07:07</p>
+<h2>FW1 <small>(firewall)</small></h2>
+<p>Antes: <span class='score'>7/13 (54%)</span> &rarr; Despu&eacute;s: <span class='score'>13/13 (100%)</span></p>
+<table><tr><th>ID</th><th>Recomendaci&oacute;n CIS</th><th>Por qu&eacute;</th><th>Antes</th><th>Despu&eacute;s</th><th>Detalle</th></tr>
+<tr><td>F01</td><td>Ensure hostname is set</td><td>Identifica el equipo en logs y alertas; un nombre generico dificulta la trazabilidad.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>hostname FW1</td></tr>
+<tr><td>F02</td><td>Ensure &#x27;admin-telnet&#x27; is disabled</td><td>Telnet envia usuario y clave en texto claro; solo se permite administracion cifrada.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>admin-telnet disable</td></tr>
+<tr><td>F03</td><td>Ensure only HTTPS and SSH are allowed for administrative access on interfaces</td><td>Reduce la superficie de ataque del plano de administracion a canales cifrados.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>ok</td></tr>
+<tr><td>F04</td><td>Ensure &#x27;Pre-Login Banner&#x27; is set</td><td>Deja constancia de que el acceso es solo para personal autorizado.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>pre-login-banner enable</td></tr>
+<tr><td>F05</td><td>Ensure &#x27;Post-Login Banner&#x27; is set</td><td>Refuerza el aviso legal de monitoreo una vez autenticado el administrador.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>post-login-banner enable</td></tr>
+<tr><td>F06</td><td>Ensure idle timeout time is configured (admintimeout &lt;= 5)</td><td>Una sesion de administrador abandonada no debe quedar abierta.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>admintimeout 5</td></tr>
+<tr><td>F07</td><td>Ensure administrator password retries and lockout time are configured</td><td>Frena los ataques de fuerza bruta contra la cuenta de administrador.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>threshold 3, duration 900 s</td></tr>
+<tr><td>F08</td><td>Ensure only TLS 1.2 or higher is used for HTTPS administrative access</td><td>TLS 1.0 y 1.1 estan obsoletos y son vulnerables.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>versiones: tlsv1-2</td></tr>
+<tr><td>F09</td><td>Ensure &#x27;strong-crypto&#x27; is enabled</td><td>Obliga a usar cifrados y protocolos robustos en los servicios del equipo.</td><td class='NA'>N/A</td><td class='NA'>N/A</td><td>N/A (sin dato)</td></tr>
+<tr><td>F10</td><td>Ensure &#x27;Password Policy&#x27; is enabled</td><td>Evita contrasenas debiles en las cuentas de administracion.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>status enable, minimum-length 8</td></tr>
+<tr><td>F11</td><td>Ensure administrator accounts are restricted with trusted hosts</td><td>Aunque la clave se filtre, solo se puede administrar desde la red de gestion.</td><td class='FAIL'>FAIL</td><td class='PASS'>PASS</td><td>ok</td></tr>
+<tr><td>F12</td><td>Ensure local logging is enabled</td><td>Sin registros no hay forma de investigar un incidente.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>log memory status enable</td></tr>
+<tr><td>F13</td><td>Ensure default SNMP community strings are not used</td><td>Las comunidades por defecto son lo primero que prueba un atacante.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>sin comunidades por defecto</td></tr>
+<tr><td>F14</td><td>Ensure correct system time is configured through NTP</td><td>Hora correcta = logs correlacionables y certificados validos.</td><td class='PASS'>PASS</td><td class='PASS'>PASS</td><td>ntpsync enable</td></tr>
+</table>
+<details><summary>Comandos aplicados (31)</summary><pre>config system interface
+edit &quot;port1&quot;
+set allowaccess ping https ssh
+next
+end
+config system global
+set pre-login-banner enable
+end
+config system global
+set post-login-banner enable
+end
+config system global
+set admin-lockout-threshold 3
+set admin-lockout-duration 900
+end
+config system password-policy
+set status enable
+set apply-to admin-password
+set minimum-length 8
+set min-upper-case-letter 1
+set min-lower-case-letter 1
+set min-number 1
+set min-non-alphanumeric 1
+set expire-status enable
+set expire-day 90
+end
+config system admin
+edit &quot;admin&quot;
+set trusthost1 10.20.35.0 255.255.255.0
+next
+end</pre></details>
+</body></html>

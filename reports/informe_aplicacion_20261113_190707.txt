@@ -1,0 +1,36 @@
+INFORME CIS HARDENING (APLICACION + INFORME POSTERIOR) - 2026-11-13 19:07:07
+Estudiante: Gregorys Morel Duluc | Matricula 2025-0035
+==============================================================================
+
+EQUIPO FW1 (firewall)
+  -- ANTES: 7/13 controles (54%)
+   [PASS] F01 FortiGate: nombre de equipo distinto al de fabrica | hostname FW1
+   [PASS] F02 FortiGate: administracion por Telnet deshabilitada | admin-telnet disable
+   [FAIL] F03 FortiGate: sin 'http' ni 'telnet' en allowaccess de las interfaces | permitido en: port1(http)
+   [FAIL] F04 FortiGate: aviso legal antes del login | pre-login-banner disable
+   [FAIL] F05 FortiGate: aviso legal despues del login | post-login-banner disable
+   [PASS] F06 FortiGate: cierre de sesion de administracion por inactividad <= 5 min | admintimeout 5
+   [FAIL] F07 FortiGate: bloqueo tras <=3 intentos fallidos durante >=900 s | threshold 3, duration 60 s
+   [PASS] F08 FortiGate: HTTPS de administracion solo con TLS 1.2 / 1.3 | versiones: tlsv1-2
+   [N/A ] F09 FortiGate: criptografia fuerte global | N/A (sin dato)
+   [FAIL] F10 FortiGate: politica de contrasenas (longitud y complejidad) | status disable, minimum-length None
+   [FAIL] F11 FortiGate: cada administrador con 'trusthost' (solo la red de gestion) | sin trusthost: admin
+   [PASS] F12 FortiGate: registro de eventos local habilitado | log memory status enable
+   [PASS] F13 FortiGate: sin comunidades SNMP 'public'/'private' | sin comunidades por defecto
+   [PASS] F14 FortiGate: sincronizacion NTP habilitada | ntpsync enable
+  -- DESPUES: 13/13 controles (100%)
+   [PASS] F01 FortiGate: nombre de equipo distinto al de fabrica | hostname FW1
+   [PASS] F02 FortiGate: administracion por Telnet deshabilitada | admin-telnet disable
+   [PASS] F03 FortiGate: sin 'http' ni 'telnet' en allowaccess de las interfaces | ok
+   [PASS] F04 FortiGate: aviso legal antes del login | pre-login-banner enable
+   [PASS] F05 FortiGate: aviso legal despues del login | post-login-banner enable
+   [PASS] F06 FortiGate: cierre de sesion de administracion por inactividad <= 5 min | admintimeout 5
+   [PASS] F07 FortiGate: bloqueo tras <=3 intentos fallidos durante >=900 s | threshold 3, duration 900 s
+   [PASS] F08 FortiGate: HTTPS de administracion solo con TLS 1.2 / 1.3 | versiones: tlsv1-2
+   [N/A ] F09 FortiGate: criptografia fuerte global | N/A (sin dato)
+   [PASS] F10 FortiGate: politica de contrasenas (longitud y complejidad) | status enable, minimum-length 8
+   [PASS] F11 FortiGate: cada administrador con 'trusthost' (solo la red de gestion) | ok
+   [PASS] F12 FortiGate: registro de eventos local habilitado | log memory status enable
+   [PASS] F13 FortiGate: sin comunidades SNMP 'public'/'private' | sin comunidades por defecto
+   [PASS] F14 FortiGate: sincronizacion NTP habilitada | ntpsync enable
+  Comandos aplicados: 31
