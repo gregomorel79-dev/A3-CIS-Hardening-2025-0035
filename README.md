@@ -8,7 +8,7 @@
 
 ## 1. Propósito del laboratorio
 
-Reducir la **superficie de ataque** de los equipos de red de una topología (un router y dos switches Cisco) aplicando recomendaciones de **hardening** basadas en el **CIS Benchmark para Cisco IOS**, y demostrar que funcionan.
+Reducir la **superficie de ataque** de los equipos de red de una topología (un router y dos switches Cisco, más un firewall FortiGate) aplicando recomendaciones de **hardening** basadas en el **CIS Benchmark para Cisco IOS**, y demostrar que funcionan.
 
 El laboratorio incluye:
 
@@ -36,12 +36,13 @@ El direccionamiento se deriva de la matrícula **2025-0035**: red **10.20.35.0/2
 | R1 | Cisco 7200 (IOS 15.2) | Router | 10.20.35.1/24 (Fa0/0) | 192.168.56.102:5000 |
 | SW1 | Cisco IOSvL2 | Switch | 10.20.35.2/24 (Vlan1) | 192.168.56.102:5001 |
 | SW2 | Cisco IOSvL2 | Switch | 10.20.35.3/24 (Vlan1) | 192.168.56.102:5003 |
+| FW1 | FortiGate 7.0.9 (VM) | Firewall | 10.20.35.4/24 (port1, conectado a SW1 Gi0/3) | 192.168.56.102:5010 |
 
 Entorno: GNS3 2.2 + GNS3 VM (VirtualBox). La misma red de la práctica anterior, ahora endurecida.
 
 ## 3. Herramienta de análisis
 
-La herramienta de análisis es el script propio **`scripts/cis_hardening.py`** (Python 3, sin dependencias externas). Se conecta por la consola Telnet de GNS3, descarga el `running-config` de cada equipo y evalúa **21 controles** tomados de las recomendaciones del **CIS Cisco IOS Benchmark** (los nombres de cada control corresponden a las recomendaciones del benchmark; la numeración de sección puede variar según la versión del documento). Genera informes HTML y TXT y guarda el `running-config` de antes y de después.
+La herramienta de análisis es el script propio **`scripts/cis_hardening.py`** (Python 3, sin dependencias externas). Se conecta por la consola Telnet de GNS3, descarga el `running-config` de cada equipo y evalúa **21 controles** tomados de las recomendaciones del **CIS Cisco IOS Benchmark** para los equipos Cisco y **13 controles** de hardening de **FortiGate** (basados en las recomendaciones del CIS FortiGate Benchmark) para el firewall (los nombres de cada control corresponden a las recomendaciones del benchmark; la numeración de sección puede variar según la versión del documento). Genera informes HTML y TXT y guarda el `running-config` de antes y de después.
 
 > La herramienta oficial del CIS para este análisis es CIS-CAT Pro (requiere membresía). Aquí se usa un script propio que implementa los controles seleccionados, para poder automatizar tanto la auditoría como la remediación.
 
@@ -98,6 +99,7 @@ Salidas: `configs/<EQUIPO>-running-config-ANTES.txt` y `-DESPUES.txt`, e informe
 | R1 | 3/20 (15 %) | 20/20 (100 %) |
 | SW1 | 3/21 (14 %) | 21/21 (100 %) |
 | SW2 | 3/21 (14 %) | 21/21 (100 %) |
+| FW1 (FortiGate) | 7/13 (54 %) | 13/13 (100 %) |
 
 Salida del script en modo `--mode report` (antes → después de cada equipo):
 
@@ -106,6 +108,12 @@ Salida del script en modo `--mode report` (antes → después de cada equipo):
 Auditoría inicial de R1 (modo `--mode audit`, sin aplicar nada): 3 de 20 controles cumplidos.
 
 ![Auditoría inicial R1](img/06-auditoria-inicial-r1.png)
+
+### Firewall FW1 (FortiGate)
+
+Se incluye un firewall FortiGate (FW1) conectado a SW1. El mismo script lo audita por consola y aplica 13 controles: hostname, Telnet de administración deshabilitado, sin `http`/`telnet` en `allowaccess`, avisos legales antes y después del login, cierre por inactividad (≤ 5 min), bloqueo tras intentos fallidos, HTTPS solo con TLS 1.2/1.3, política de contraseñas, `trusthost` por administrador, registro local, SNMP sin comunidades por defecto y NTP. Resultado: **7/13 (54 %) → 13/13 (100 %)**.
+
+![Aplicación en FW1](img/07-fw1-aplicacion.png)
 
 Los informes completos están en [`reports/`](reports/) y los `running-config` en [`configs/`](configs/).
 
@@ -128,7 +136,7 @@ CDP deshabilitado y configuración aplicada en R1:
 ```
 ├── README.md
 ├── img/        diagramas y capturas
-├── configs/    running-config ANTES y DESPUES de R1, SW1 y SW2
+├── configs/    running-config ANTES y DESPUES de R1, SW1, SW2 y FW1
 ├── reports/    informes HTML/TXT (auditoría, aplicación, antes/después)
 └── scripts/    cis_hardening.py (auditoría y hardening automatizado)
 ```
